@@ -50,6 +50,23 @@ public class userService {
         throw new Exception("Invalid credentials (username/email or password incorrect)");
     }
 
+    public User updateUser(Long id, User userDetails) throws Exception {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new Exception("User not found with id: " + id));
+        
+        // Actualizamos los campos permitidos
+        user.setUsername(userDetails.getUsername());
+        user.setEmail(userDetails.getEmail());
+        user.setFirstName(userDetails.getFirstName());
+        user.setLastName(userDetails.getLastName());
+        user.setPhone(userDetails.getPhone());
+        user.setDateOfBirth(userDetails.getDateOfBirth());
+        
+        // No actualizamos la contraseña aquí por seguridad, a menos que sea una función específica
+        
+        return userRepository.save(user);
+    }
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
