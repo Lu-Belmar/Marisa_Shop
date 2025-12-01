@@ -30,14 +30,24 @@ public class userService {
     }
 
     public User loginUser(LoginRequest loginRequest) throws Exception {
-        Optional<User> user = userRepository
-            .findByEmailAndPassword(loginRequest.getEmail(), loginRequest.getPassword());
-        
-        if (user.isPresent()) {
-            return user.get();
-        } else {
-            throw new Exception("Invalid email or password");
+        // El campo 'email' de loginRequest trae el input del usuario (puede ser user o email)
+        String input = loginRequest.getEmail(); 
+        String password = loginRequest.getPassword();
+
+        // 1. Intentar buscar por Email
+        Optional<User> userByEmail = userRepository.findByEmailAndPassword(input, password);
+        if (userByEmail.isPresent()) {
+            return userByEmail.get();
         }
+
+        // 2. Si no funciona, intentar buscar por Username
+        Optional<User> userByUsername = userRepository.findByUsernameAndPassword(input, password);
+        if (userByUsername.isPresent()) {
+            return userByUsername.get();
+        }
+
+        // 3. Si ninguno coincide, fallar
+        throw new Exception("Invalid credentials (username/email or password incorrect)");
     }
 
     public List<User> getAllUsers() {
