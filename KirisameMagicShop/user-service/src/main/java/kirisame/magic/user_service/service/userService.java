@@ -61,7 +61,7 @@ public class userService {
         user.setLastName(userDetails.getLastName());
         user.setPhone(userDetails.getPhone());
         user.setDateOfBirth(userDetails.getDateOfBirth());
-        
+        user.setAvatar(userDetails.getAvatar());
         // No actualizamos la contraseña aquí por seguridad, a menos que sea una función específica
         
         return userRepository.save(user);
