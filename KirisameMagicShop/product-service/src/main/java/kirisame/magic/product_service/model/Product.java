@@ -27,7 +27,7 @@ public class Product {
 
     // --- NUEVOS CAMPOS ---
     private String category; // Categoria
-    private String size;     // Talla (S, M, L, XL o números)
+
 
     // Constructors
     public Product() {}
@@ -35,6 +35,10 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<ProductImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<ProductSize> sizes = new ArrayList<>();
 
     // Getters and Setters (Asegúrate de generarlos para los nuevos campos)
     public Long getId() { return id; }
@@ -50,8 +54,8 @@ public class Product {
     
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
-    public String getSize() { return size; }
-    public void setSize(String size) { this.size = size; }
+    public List<ProductSize> getSizes() { return sizes; }
+    public void setSize(String size) { this.sizes = sizes; }
     public List<ProductImage> getImages() { return images; }
     public void setImages(List<ProductImage> newImages) {
         // 1. Inicializar si es null (por seguridad)
@@ -69,6 +73,33 @@ public class Product {
         }
     }
 
+    public void setSizes(List<ProductSize> newSizes) {
+        if (this.sizes == null) {
+            this.sizes = new ArrayList<>();
+        }
+        this.sizes.clear();
+        if (newSizes != null) {
+            this.sizes.addAll(newSizes);
+            for (ProductSize s : newSizes) {
+                s.setProduct(this);
+            }
+        }
+        recalculateTotalStock(); // Actualizar el total al setear tallas
+    }
+
+    // Método mágico para actualizar el stock total
+    public void recalculateTotalStock() {
+        if (this.sizes == null || this.sizes.isEmpty()) {
+            // Si no hay tallas, mantenemos el stock manual o 0
+            if (this.stock == null) this.stock = 0;
+        } else {
+            // Sumar el stock de todas las tallas
+            this.stock = this.sizes.stream()
+                .mapToInt(ProductSize::getStock)
+                .sum();
+        }
+    }
+
     @Override
     public String toString() {
         return "Product{" +
@@ -78,7 +109,7 @@ public class Product {
                 ", precio=" + precio +
                 ", stock=" + stock +
                 ", category='" + category + '\'' +
-                ", size='" + size + '\'' +
+                ", size='" + sizes + '\'' +
                 '}';
     }
 }

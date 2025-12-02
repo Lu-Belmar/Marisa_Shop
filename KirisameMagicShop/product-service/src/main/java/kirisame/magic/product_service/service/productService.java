@@ -25,6 +25,7 @@ public class productService {
     }
 
     public Product createProduct(Product product) {
+        product.recalculateTotalStock();
         // La lógica de setImages en el modelo se encarga de vincular las imágenes
         return ProductRepository.save(product);
     }
@@ -41,11 +42,11 @@ public class productService {
         product.setCategory(productDetails.getCategory());
         
         // --- FALTABA ESTA LÍNEA ---
-        product.setSize(productDetails.getSize()); 
-        
+        product.setSizes(productDetails.getSizes()); 
+        product.recalculateTotalStock();
         // Actualizar imágenes (usará el setter corregido en el paso 1)
         product.setImages(productDetails.getImages());
-
+        
         return ProductRepository.save(product);
     }
 
