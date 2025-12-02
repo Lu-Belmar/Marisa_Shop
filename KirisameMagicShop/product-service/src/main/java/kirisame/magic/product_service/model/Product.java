@@ -1,5 +1,10 @@
 package kirisame.magic.product_service.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -24,12 +29,12 @@ public class Product {
     private String category; // Categoria
     private String size;     // Talla (S, M, L, XL o números)
 
-    @Lob
-    @Column(columnDefinition = "LONGTEXT")
-    private String image;    // Imagen en Base64
-
     // Constructors
     public Product() {}
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<ProductImage> images = new ArrayList<>();
 
     // Getters and Setters (Asegúrate de generarlos para los nuevos campos)
     public Long getId() { return id; }
@@ -47,8 +52,22 @@ public class Product {
     public void setCategory(String category) { this.category = category; }
     public String getSize() { return size; }
     public void setSize(String size) { this.size = size; }
-    public String getImage() { return image; }
-    public void setImage(String image) { this.image = image; }
+    public List<ProductImage> getImages() { return images; }
+    public void setImages(List<ProductImage> newImages) {
+        // 1. Inicializar si es null (por seguridad)
+        if (this.images == null) {
+            this.images = new ArrayList<>();
+        }
+
+        this.images.clear();
+
+        if (newImages != null) {
+            this.images.addAll(newImages);
+            for (ProductImage img : newImages) {
+                img.setProduct(this); // Vincula la imagen al producto padre
+            }
+        }
+    }
 
     @Override
     public String toString() {

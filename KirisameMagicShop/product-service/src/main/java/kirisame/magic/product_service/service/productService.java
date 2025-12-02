@@ -1,10 +1,9 @@
 package kirisame.magic.product_service.service;
 
 import kirisame.magic.product_service.model.Product;
-import kirisame.magic.product_service.repository.productRepository;
+import kirisame.magic.product_service.repository.productRepository; // Nota: Deberías renombrar tu clase repository a ProductRepository (Mayúscula) por convención
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +12,9 @@ public class productService {
 
     @Autowired
     private productRepository ProductRepository;
+
+    @Autowired
+    private productImageService ProductImageService;
 
     public List<Product> getAllProducts() {
         return ProductRepository.findAll();
@@ -23,6 +25,7 @@ public class productService {
     }
 
     public Product createProduct(Product product) {
+        // La lógica de setImages en el modelo se encarga de vincular las imágenes
         return ProductRepository.save(product);
     }
 
@@ -30,12 +33,19 @@ public class productService {
         Product product = ProductRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
         
+        // Actualizar campos básicos
         product.setNombre(productDetails.getNombre());
         product.setDescripcion(productDetails.getDescripcion());
         product.setPrecio(productDetails.getPrecio());
         product.setStock(productDetails.getStock());
         product.setCategory(productDetails.getCategory());
-        product.setImage(productDetails.getImage());
+        
+        // --- FALTABA ESTA LÍNEA ---
+        product.setSize(productDetails.getSize()); 
+        
+        // Actualizar imágenes (usará el setter corregido en el paso 1)
+        product.setImages(productDetails.getImages());
+
         return ProductRepository.save(product);
     }
 

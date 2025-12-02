@@ -72,14 +72,19 @@ public class productController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
         try {
+            if (productDetails.getNombre() == null || productDetails.getNombre().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Product name is required");
+            }
+            if (productDetails.getPrecio() == null || productDetails.getPrecio() <= 0) {
+                return ResponseEntity.badRequest().body("Valid price is required");
+            }
+
             Product updatedProduct = productService.updateProduct(id, productDetails);
             return ResponseEntity.ok(updatedProduct);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error updating product: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating product: " + e.getMessage());
         }
     }
 
