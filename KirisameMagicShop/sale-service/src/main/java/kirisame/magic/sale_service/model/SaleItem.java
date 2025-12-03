@@ -18,6 +18,9 @@ public class SaleItem {
     @Column(nullable = false)
     private Integer quantity;
     
+    @Column(name = "product_size") // Nombre de la columna en DB
+    private String size;
+
     @Column(nullable = false)
     private Double price;
     
@@ -42,6 +45,9 @@ public class SaleItem {
     public Long getProductId() { return productId; }
     public void setProductId(Long productId) { this.productId = productId; }
     
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
+
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }
     

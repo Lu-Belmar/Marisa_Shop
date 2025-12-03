@@ -1,7 +1,10 @@
 package kirisame.magic.product_service.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -25,12 +28,19 @@ public class Product {
     @Column(nullable = false)
     private Integer stock; // Cantidad
 
-    // --- NUEVOS CAMPOS ---
-    private String category; // Categoria
+
 
 
     // Constructors
     public Product() {}
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "product_categories",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<Category> categories = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
@@ -52,8 +62,7 @@ public class Product {
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
     
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    
     public List<ProductSize> getSizes() { return sizes; }
     public void setSize(String size) { this.sizes = sizes; }
     public List<ProductImage> getImages() { return images; }
@@ -71,6 +80,19 @@ public class Product {
                 img.setProduct(this); // Vincula la imagen al producto padre
             }
         }
+    }
+
+    public Set<Category> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Set<Category> categories) {
+        this.categories = categories;
+    }
+    
+    public void addCategory(Category category) {
+        this.categories.add(category);
+        category.getProducts().add(this);
     }
 
     public void setSizes(List<ProductSize> newSizes) {
@@ -108,7 +130,7 @@ public class Product {
                 ", descripcion='" + descripcion + '\'' +
                 ", precio=" + precio +
                 ", stock=" + stock +
-                ", category='" + category + '\'' +
+                ", category='" + categories + '\'' +
                 ", size='" + sizes + '\'' +
                 '}';
     }

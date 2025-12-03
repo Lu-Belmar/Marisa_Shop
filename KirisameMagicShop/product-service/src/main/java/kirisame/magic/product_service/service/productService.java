@@ -6,6 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import kirisame.magic.product_service.model.Category;
+import kirisame.magic.product_service.repository.CategoryRepository;
+import java.util.HashSet;
+import java.util.Set;
+
 
 @Service
 public class productService {
@@ -15,6 +20,9 @@ public class productService {
 
     @Autowired
     private productImageService ProductImageService;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     public List<Product> getAllProducts() {
         return ProductRepository.findAll();
@@ -26,6 +34,24 @@ public class productService {
 
     public Product createProduct(Product product) {
         product.recalculateTotalStock();
+        if (product.getCategories() != null && !product.getCategories().isEmpty()) {
+            Set<Category> managedCategories = new HashSet<>();
+            
+            for (Category cat : product.getCategories()) {
+                // Buscamos si la categoría ya existe por nombre
+                Category existingCat = categoryRepository.findByName(cat.getName())
+                    .orElse(null);
+                
+                if (existingCat != null) {
+                    // Si existe, usamos la de la base de datos
+                    managedCategories.add(existingCat);
+                } else {
+                    // Si no existe, la guardamos como nueva (es la que viene en el request)
+                    managedCategories.add(cat);
+                }
+            }
+            product.setCategories(managedCategories);
+        }
         // La lógica de setImages en el modelo se encarga de vincular las imágenes
         return ProductRepository.save(product);
     }
@@ -39,8 +65,19 @@ public class productService {
         product.setDescripcion(productDetails.getDescripcion());
         product.setPrecio(productDetails.getPrecio());
         product.setStock(productDetails.getStock());
-        product.setCategory(productDetails.getCategory());
-        
+        if (productDetails.getCategories() != null) {
+            Set<Category> managedCategories = new HashSet<>();
+            for (Category cat : productDetails.getCategories()) {
+                Category existingCat = categoryRepository.findByName(cat.getName())
+                    .orElse(null);
+                if (existingCat != null) {
+                    managedCategories.add(existingCat);
+                } else {
+                    managedCategories.add(cat);
+                }
+            }
+            product.setCategories(managedCategories);
+        }
         // --- FALTABA ESTA LÍNEA ---
         product.setSizes(productDetails.getSizes()); 
         product.recalculateTotalStock();

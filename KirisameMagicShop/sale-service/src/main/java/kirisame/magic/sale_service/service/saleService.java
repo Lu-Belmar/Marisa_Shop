@@ -8,6 +8,9 @@ import kirisame.magic.sale_service.repository.productRepository; // Importante
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Importante
+import kirisame.magic.sale_service.model.ProductSize;
+import kirisame.magic.sale_service.repository.productSizeRepository;
+
 
 import java.util.Date;
 import java.util.List;
@@ -22,7 +25,10 @@ public class saleService {
     @Autowired
     private productRepository ProductRepository; // Inyectamos el repo de productos
 
+    @Autowired
+    private productSizeRepository ProductSizeRepository;
     public List<Sale> getAllSales() {
+
         return SaleRepository.findAll();
     }
 
@@ -35,32 +41,45 @@ public class saleService {
     }
 
     // Añadimos @Transactional para que si algo falla, se revierta todo (incluida la resta de stock)
-    @Transactional
-    public Sale createSale(Sale sale) throws Exception { // Añadimos throws Exception
-        // 1. Validar y Restar Stock
+ @Transactional(rollbackFor = Exception.class) // Importante: rollback si falla stock
+    public Sale createSale(Sale sale) throws Exception {
         if (sale.getItems() != null) {
             for (SaleItem item : sale.getItems()) {
-                // Buscamos el producto en la BD
+                // 1. Obtener el producto principal (Padre)
                 Product product = ProductRepository.findById(item.getProductId())
                     .orElseThrow(() -> new Exception("Producto no encontrado ID: " + item.getProductId()));
 
-                // Verificamos si hay suficiente stock
+                // 2. Lógica de Stock por Talla
+                if (item.getSize() != null && !item.getSize().isEmpty()) {
+                    // Buscar la talla específica
+                    ProductSize sizeEntity = ProductSizeRepository.findByProductIdAndName(item.getProductId(), item.getSize())
+                        .orElseThrow(() -> new Exception("Talla '" + item.getSize() + "' no encontrada para el producto ID: " + item.getProductId()));
+
+                    // Validar stock de la talla
+                    if (sizeEntity.getStock() < item.getQuantity()) {
+                        throw new Exception("Stock insuficiente para la talla " + item.getSize() + ". Stock actual: " + sizeEntity.getStock());
+                    }
+
+                    // Descontar stock de la talla
+                    sizeEntity.setStock(sizeEntity.getStock() - item.getQuantity());
+                    ProductSizeRepository.save(sizeEntity);
+                } 
+                
+                // 3. Validación y Descuento del Stock Global (siempre se hace para mantener sincronía)
+                // Nota: Si usas tallas, el stock global debería ser la suma de tallas, así que también se reduce.
                 if (product.getStock() < item.getQuantity()) {
-                    throw new Exception("Stock insuficiente para el producto ID: " + item.getProductId());
+                    throw new Exception("Stock global insuficiente para el producto ID: " + item.getProductId());
                 }
 
-                // Restamos el stock
                 product.setStock(product.getStock() - item.getQuantity());
-                
-                // Guardamos el producto actualizado
                 ProductRepository.save(product);
                 
-                // Calculamos subtotal del item para la venta
+                // Calcular subtotal
                 item.calculateSubtotal();
             }
         }
 
-        // 2. Calcular total de la venta si no viene
+        // Calcular total si no viene
         if (sale.getTotal() == null || sale.getTotal() == 0) {
             double total = sale.getItems().stream()
                 .mapToDouble(SaleItem::getSubtotal)
