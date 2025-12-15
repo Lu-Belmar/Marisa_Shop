@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "https://mercadovkeireact.onrender.com")
 @RestController
 @RequestMapping("/api/products")
 public class productController {

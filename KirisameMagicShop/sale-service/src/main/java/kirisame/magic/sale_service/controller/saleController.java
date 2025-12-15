@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "https://mercadovkeireact.onrender.com")
 @RestController
 @RequestMapping("/api/sales")
 public class saleController {
