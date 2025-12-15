@@ -26,6 +26,10 @@ public class userService {
             throw new Exception("Username is already taken!");
         }
         
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+        user.setRole("USER"); // Por defecto es usuario normal
+        }
+
         return userRepository.save(user);
     }
 
