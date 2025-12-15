@@ -1,6 +1,6 @@
 package kirisame.magic.product_service.Config; // CAMBIAR EL PAQUETE SEGUN EL SERVICIO (user, product, sale)
 
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -8,13 +8,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000}")
-    private String[] allowedOrigins;
-
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins)
+                .allowedOrigins(
+                    "http://localhost:5173",              // Tu Vite local
+                    "http://localhost:3000",              // Por si acaso
+                    "https://mercadovkeireact.onrender.com" // TU FRONTEND EN RENDER (¡Importante!)
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
